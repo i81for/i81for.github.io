@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <title>Fabricjs例子欣赏</title>
+    <style>
+        *{ padding: 0; margin: 0; box-sizing: content-box; }
+        .cls{}
+        .cls::before, .cls::after{ display: block; clear: both; height: 0; content: ''; overflow: hidden; }
+        body{ position: relative; }
+        h1{ text-align: center; }
+        .demo{position: relative; width: 800px;height: 500px;margin: 10px auto 0;background: #eee;}
+        .demo canvas{ display: block;}
+        .repeat{ width: 800px; text-align: right; margin: 0 auto; }
+        .repeat .btn{ padding: 3px 10px; }
+    </style>
+    <script src="./libs/lodash.min.js"></script>
+    <script src="./libs/fabric.js"></script>
+</head>
+<body>
+    <h1>排行榜</h1>
+    <div class="repeat"><input class="btn" type="button" value="再来一次"></div>
+    <div class="demo"><canvas width="800px" height="500px"  id="c"></canvas></div>
+    <script>
+        let canvas = this.__canvas = new fabric.StaticCanvas('c');
+        let peopleArr = [{ name: '刘一' }, { name: '陈二' }, { name: '张三' }, { name: '李四' },{ name: '王五' }, { name: '赵六' }, { name: '孙七' }, { name: '周八' }, { name: '吴九' }, { name: '邓十' }];
+        let rectArr = [];
+        let clearTime = null;
+        let count = 0;
+
+        function createRandom() {
+            let arr = [];
+            peopleArr.forEach((item, index) => {
+                arr.push({
+                    key: index,
+                    val: parseInt(Math.random() * 700)
+                });
+            });
+            return arr;
+        }
+
+        function createRect() {
+            for (let i = 0; i < 10; i++) {
+                rectArr[i] = {};
+                rectArr[i].rect = new fabric.Rect({
+                    width: 100,
+                    height: 15,
+                    left: 0,
+                    top: 20 * (i + 1) + i * 15,
+                    fill: '#f00',
+                    originX: 'left',
+                    originY: 'top'
+                });
+                canvas.add(rectArr[i].rect);
+
+                rectArr[i].txt = new fabric.Text(peopleArr[i].name, {
+                    fontSize: 15,
+                    left: 110,
+                    top: 20 * (i + 1) + i * 15,
+                    fill: '#f00',
+                    visible: true,
+                    originX: 'left',
+                    originY: 'top'
+                });
+                canvas.add(rectArr[i].txt);
+            }
+        }
+
+        function play() {
+            if (count < 3) {
+                clearTime = setTimeout(() => {
+                    let randomArr = createRandom();
+                    randomArr.sort((a, b) => {
+                        return b.val - a.val
+                    });
+
+                    rectArr.forEach((item, index) => {
+                        let tmpI = randomArr.findIndex(fItem => index == fItem.key);
+                        let tmpO = randomArr[tmpI];
+
+                        item.rect.animate('top', 20 * (tmpI + 1) + tmpI * 15, {
+                            duration: 600,
+                            onChange: canvas.renderAll.bind(canvas),
+                        }).animate('width', tmpO.val, {
+                            duration: 1000,
+                            onChange: canvas.renderAll.bind(canvas),
+                        });
+
+                        item.txt.animate('top', 20 * (tmpI + 1) + tmpI * 15, {
+                            duration: 600,
+                            onChange: canvas.renderAll.bind(canvas),
+                        }).animate('left', 10 + tmpO.val, {
+                            duration: 1000,
+                            onChange: canvas.renderAll.bind(canvas),
+                        });
+                    });
+                    count++;
+                    play();
+                }, count != 0 ? 3000 : 1000);
+            } else {
+                clearTimeout(clearTime);
+            }
+        }
+
+        createRect(); 
+        play(); 
+
+        let pathData = `M0 0 L2 49.6 L4 49.8 L6 48.7 L8 46.9 L10 46 L12 47 L14 48.7 L16 49.7 L18 49.3 L20 48 L22 47.5 L24 47.9 L26 48.6 L28 48.4 L30 47.1 L32 45.3 L34 44.3 L36 44.7 L38 46.3 L40 48.5 L42 49.7 L44 49.1 L46 46.9 L48 44.9 L50 44.6 L52 46.7 L54 49.6 L56 50.9 L58 50.1 L60 48.5 L62 47.8 L64 49.2 L66 51.4 L68 52.4 L70 51.4 L72 49.3 L74 47.7 L76 47.7 L78 49 L80 50.1 L82 49.9 L84 48.3 L86 46.2 L88 45.4 L90 46.4 L92 48.7 L94 50.2 L96 49.7 L98 47.6 L100 45.8 L102 45.8 L104 47.3 L106 48.6 L108 48.1 L110 46.1 L112 44.6 L114 45 L116 47.1 L118 49.6 L120 51.1 L122 51.3 L124 50.6 L126 49.4 L128 48.2 L130 47.6 L132 48 L134 48.8 L136 49.1 L138 48.5 L140 47.1 L142 46.6 L144 47.9 L146 50.2 L148 51.6 L150 51.3 L152 49.7 L154 48.1 L156 47.5 L158 47.9 L160 48.6 L162 49.2 L164 49.9 L166 50.5 L168 50.8 L170 50.7 L172 50.5 L174 50.4 L176 50.5 L178 50.4 L180 50.2 L182 50.4 L184 51.3 L186 52.6 L188 53.4 L190 53.4 L192 53.5 L194 54.7 L196 57.1 L198 59.3 L200 59.9 L202 58.9 L204 57.7 L206 57.4 L208 58.3 L210 59.5 L212 59.9 L214 59.7 L216 59.7 L218 59.6 L220 58.8 L222 56.8 L224 54.1 L226 51.9 L228 51.2 L230 51.7 L232 52.7 L234 53.4 L236 53.4 L238 52.7 L240 51.6 L242 51 L244 51.2 L246 52.1 L248 52.6 L250 52.2 L252 51.5 L254 51.9 L256 54.5 L258 57.9 L260 59.9 L262 58.8 L264 55.7 L266 53.4 L268 54 L270 57 L272 60.2 L274 61.2 L276 59.8 L278 57 L280 54.4 L282 53.1 L284 52.7 L286 52.7 L288 52.3 L290 50.6 L292 48.3 L294 46.3 L296 46 L298 47 L300 48.1 L302 47.6 L304 45.3 L306 42.4 L308 40.4 L310 39.8 L312 40.2 L314 41.1 L316 42.3 L318 43.6 L320 44.6 L322 44.5 L324 43.2 L326 41.7 L328 41.1 L330 41.5 L332 42 L334 41.6 L336 40.9 L338 40.9 L340 42.3 L342 44.6 L344 46 L346 45.5 L348 43.5 L350 41.5 L352 40.7 L354 41.3 L356 42.7 L358 43.9 L360 44.6 L362 44.7 L364 44.6 L366 44.5 L368 44.6 L370 44.9 L372 44.9 L374 44.8 L376 44.7 L378 44.6 L380 44.1 L382 43 L384 41.5 L386 40.9 L388 41.9 L390 44.7 L392 47.6 L394 49.1 L396 48.5 L398 46.4 L400 43.8 L402 42.3 L404 44.1 L406 51.4 L408 64.6 L410 80.7 L412 93.8 L414 98.2 L416 92.4 L418 79.7 L420 65.9 L422 55.2 L424 48.6 L426 44.9 L428 43 L430 42.6 L432 43.6 L434 45.1 L436 45.8 L438 45.6 L440 45.3 L442 45.8 L444 47 L446 47.9 L448 47.5 L450 46.2 L452 45.1 L454 45.2 L456 46.8 L458 49.2 L460 51.4 L462 52 L464 50.5 L466 47.5 L468 45.2 L470 44.9 L472 46.6 L474 48.6 L476 49 L478 47.7 L480 46.1 L482 45.9 L484 47.5 L486 49.5 L488 50.5 L490 50.1 L492 48.9 L494 47.7 L496 47 L498 47 L500 47.8 L502 49.1 L504 49.8 L506 49.5 L508 48.4 L510 47.9 L512 48.9 L514 50.9 L516 52.7 L518 53.2 L520 52.9 L522 53 L524 54.3 L526 55.7 L528 55.8 L530 54.4 L532 52.2 L534 50.7 L536 50.4 L538 51 L540 51.7 L542 52 L544 51.5 L546 50.4 L548 49.2 L550 49.1 L552 50.7 L554 53.1 L556 54.3 L558 53 L560 50 L562 47.6 L564 48 L566 50.4 L568 52.5 L570 52.4 L572 50.7 L574 49.3 L576 49.6 L578 51.1 L580 52.3 L582 52.4 L584 51.9 L586 51.6 L588 51.5 L590 51.1 L592 50.1 L594 49.1 L596 48.9 L598 49.6 L600 51 L602 52.4 L604 53.3 L606 53.2 L608 51.9 L610 50 L612 48.4 L614 48 L616 48.5 L618 49.2 L620 49.4 L622 49.7 L624 50.9 L626 52.9 L628 54 L630 53 L632 50.3 L634 48.2 L636 48.4 L638 50.7 L640 52.6 L642 52.6 L644 50.9 L646 49.8 L648 50.7 L650 52.8 L652 54.2 L654 53.3 L656 50.8 L658 48.5 L660 47.9 L662 48.9 L664 50.4 L666 51 L668 50.1 L670 48.4 L672 46.7 L674 46.1 L676 46.6 L678 47.7 L680 48.9 L682 49.8 L684 50.4 L686 50.5 L688 49.7 L690 47.9 L692 46 L694 45.2 L696 46.3 L698 48.4 L700 49.6 L702 48.6 L704 46.4 L706 45.4 L708 46.8 L710 49.9 L712 52.5 L714 53.3 L716 52.6 L718 51.8 L720 51.6 L722 51.8 L724 52.2 L726 52.5 L728 53.1 L730 53.8 L732 54.4 L734 54.3 L736 53.7 L738 53 L740 52.5 L742 52.1 L744 51.9 L746 52 L748 52.2 L750 52.4 L752 51.9 L754 50.7 L756 49.2 L758 48 L760 47.3 L762 46.8 L764 46.3 L766 46 L768 46 L770 45.9 L772 45 L774 43.6 L776 42.7 L778 43.7 L780 46.2 L782 48.6 L784 49 L786 47.3 L788 45 L790 43.9 L792 44.2 L794 45.1 L796 45.6 L798 45.2 L800 44.6 `;
+
+        let path = new fabric.Path(pathData, {
+            width: 800,
+            height: 100,
+            left: 0,
+            top: 380,
+            fill: 'transparent',
+            stroke: '#f00',
+            strokeWidth: 2,
+        });
+        canvas.add(path);
+
+        let circle = new fabric.Circle({
+            radius: 10, 
+            left: 0, 
+            top: 380,
+            fill: '#f00',
+            originX: 'center',
+            originY: 'center'
+        });
+        canvas.add(circle);
+
+        let pointLArr = pathData.split('L');
+        let pathArr = [];
+        let xx = '';
+        let max1 = 0;
+        let max2 = 0;
+        pointLArr.forEach((item, index)=>{
+            if(index>0){
+                let tmpArr = item.split(' ').filter(item=>item!=='');
+                pathArr.push(tmpArr);
+                if(index<=400){
+                    xx+=`L${item}`;
+                    max1 = Math.max(tmpArr[1], max1);
+                }
+                max2 = Math.max(tmpArr[1], max2);
+            }
+        });
+
+        let isReady = false;
+        let reqNum = 0;
+        function animate() { 
+            if(reqNum < 400){
+                circle.set({
+                    left: pathArr[reqNum][0],
+                    top:  +pathArr[reqNum][1] + 380,
+                });
+                canvas.renderAll();
+                reqNum++;
+                fabric.util.requestAnimFrame(animate, circle);
+            }else{
+                isReady = true;
+            }
+        }
+        animate();
+
+        document.querySelector('.repeat .btn').onclick = function(){
+            if(isReady){
+                isReady = false;
+                count = 0;
+                reqNum = 0;
+                play();
+                animate();
+            }
+        };
+    </script>
+</body>
+</html>
