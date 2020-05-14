@@ -25,6 +25,7 @@
         .layers .item .eye{ width: 15px; height: 15px; background: #0f0; border: 5px solid #999; margin-right: 10px; }
         .layers .item .eye.uneye{ background: #eee; }
         .layers .item .elem{ width: 130px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .center{ text-align: center; margin-top: 20px; }
     </style>
     <script src="./libs/lodash.min.js"></script>
     <script src="./libs/fabric.js"></script>
@@ -59,6 +60,8 @@
     <div class="layers"></div>
 
     <div class="demo"><canvas width="800px" height="500px"  id="c"></canvas></div>
+
+    <div class="center">存在很多问题</div>
 
     <script>
         let canvas = this.__canvas = new fabric.Canvas('c');
