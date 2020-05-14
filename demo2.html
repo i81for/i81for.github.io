@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <title>Fabricjs例子欣赏</title>
+    <style>
+        *{ padding: 0; margin: 0; box-sizing: content-box; }
+        .cls{}
+        .cls::before, .cls::after{ display: block; clear: both; height: 0; content: ''; overflow: hidden; }
+        body{ position: relative; }
+        .demo{position: relative;width: 800px;height: 500px;margin: 10px auto 0;background: #eee;}
+        .demo canvas{ display: block;}
+        .btn{ padding: 3px 10px; border: 1px solid #999; }
+        .btn[disabled]{ background: #eee; }
+        .operate{ text-align: center; font-size: 0; line-height: 0; padding-top: 30px; }
+        .operate .btn{ font-size: 14px; margin: 0 5px; }
+        .side{ position: absolute; left: 50%; width: 80px; margin-left: 410px; }
+        .side .btn{ display: block; width: 100%; margin: 10px 0; }
+        .side .two{ margin-bottom: 50px; }
+
+        .layers{ position: absolute; left: 50%; width: 200px; margin-left: -610px; border: 1px solid #999; }
+        .layers .item{ display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #999; }
+        .layers .item:nth-last-of-type(1){ border-bottom: none; }
+        .layers .item.checked{ background: rgba(0, 255, 0, .3); }
+        .layers .item .eye{ width: 15px; height: 15px; background: #0f0; border: 5px solid #999; margin-right: 10px; }
+        .layers .item .eye.uneye{ background: #eee; }
+        .layers .item .elem{ width: 130px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+    </style>
+    <script src="./libs/lodash.min.js"></script>
+    <script src="./libs/fabric.js"></script>
+</head>
+<body>
+    <div class="operate">
+        <input class="btn" _type="up" type="button" value="向上">
+        <input class="btn" _type="down" type="button" value="向下">
+        <input class="btn" _type="left" type="button" value="向左">
+        <input class="btn" _type="right" type="button" value="向右">
+        <input class="btn" _type="flipx" type="button" value="水平翻转">
+        <input class="btn" _type="flipy" type="button" value="垂直翻转">
+        <input class="btn" _type="angle-90" type="button" value="逆90度">
+        <input class="btn" _type="angle90" type="button" value="顺90度">
+    </div>
+
+    <div class="side">
+        <div class="two">
+            <input class="btn" _type="horiLt" disabled="disabled" type="button" value="水平左对齐">
+            <input class="btn" _type="horiCt" disabled="disabled" type="button" value="水平中对齐">
+            <input class="btn" _type="horiRt" disabled="disabled" type="button" value="水平右对齐">
+            <input class="btn" _type="vertLt" disabled="disabled" type="button" value="垂直上对齐">
+            <input class="btn" _type="vertCt" disabled="disabled" type="button" value="垂直中对齐">
+            <input class="btn" _type="vertRt" disabled="disabled" type="button" value="垂直下对齐">
+        </div>
+        <div class="three">
+            <input class="btn" _type="averh" disabled="disabled" type="button" value="水平均分布">
+            <input class="btn" _type="averv" disabled="disabled" type="button" value="垂直均分布">
+        </div>
+    </div>
+
+    <div class="layers"></div>
+
+    <div class="demo"><canvas width="800px" height="500px"  id="c"></canvas></div>
+
+    <script>
+        let canvas = this.__canvas = new fabric.Canvas('c');
+
+        let text = new fabric.Text('Hello World', {
+            kid: 'k0002',
+            kname: 'Hello World',
+            fontSize: 30,
+            left: 360,
+            top: 360,
+            fill: '#00f',
+            visible: true
+        });
+        canvas.add(text);
+
+        let rectK0001 = new fabric.Rect({
+            kid: 'k0001',
+            kname: '红色长方形',
+            width: 100,
+            height: 30,
+            left: 580,
+            top: 100,
+            fill: '#f00',
+            visible: true
+        });
+        canvas.add(rectK0001);
+
+        let rectK0005 = new fabric.Rect({
+            kid: 'k0005',
+            kname: '绿色长方形',
+            width: 100,
+            height: 30,
+            left: 600,
+            top: 130,
+            fill: '#0f0',
+            visible: true
+        });
+        canvas.add(rectK0005);
+
+        let rectK0006 = new fabric.Rect({
+            kid: 'k0006',
+            kname: '黄色长方形',
+            width: 100,
+            height: 30,
+            left: 650,
+            top: 280,
+            fill: '#ff0',
+            visible: true
+        });
+        canvas.add(rectK0006);
+
+        let path = new fabric.Path('M 0 0 L 200 100 L 170 200 z');
+        path.set({ 
+            kid: 'k0003',
+            kname: '路径',
+            left: 120, 
+            top: 120, 
+            fill: '#000', 
+            stroke: '#f6a', 
+            strokeWidth: 5,
+            visible: true
+        });
+        canvas.add(path);
+
+        fabric.Image.fromURL('./images/share.jpg', function(img) {
+            img.set({
+                kid: 'k0004',
+                kname: '图片',
+                left: 400,
+                top: 30,
+                visible: true
+            });
+            canvas.add(img);
+            layersRender();
+        });
+
+        let sideTwoBtns = document.querySelectorAll('.side .two .btn');
+        let sideThreeBtns = document.querySelectorAll('.side .three .btn');
+
+        canvas.on({
+            'mouse:up': function(){
+                let curObj = canvas.getActiveObject();
+                if(curObj && curObj._objects){
+                    sideTwoBtns.forEach(item=>{
+                        item.removeAttribute('disabled');
+                    });
+
+                    if(curObj._objects.length>=3){
+                        sideThreeBtns.forEach(item=>{
+                            item.removeAttribute('disabled');
+                        });
+                    }else{
+                        sideThreeBtns.forEach(item=>{
+                            item.setAttribute('disabled', 'disabled');
+                        });
+                    }
+
+                    
+                    if(curObj.originX == 'center'){
+                        curObj.set({
+                            left: curObj.left - curObj.width/2,
+                            top: curObj.top - curObj.height/2,
+                            originX: 'left',
+                            originY: 'top'
+                        });
+                        canvas.renderAll();
+                    }
+                }else{
+                    document.querySelectorAll('.side .btn').forEach(item=>{
+                        item.setAttribute('disabled', 'disabled');
+                    });
+                }
+
+                layersRender();
+            }
+        });
+
+        document.querySelectorAll('.operate .btn').forEach(item=>{
+            item.onclick = function(e){
+                let domType = e.target.getAttribute('_type');
+
+                switch(domType){
+                    case 'up':
+                    case 'down':
+                        vertMove(domType);
+                    break;
+                    case 'left':
+                    case 'right':
+                       horiMove(domType);
+                    break;
+                    case 'flipx':
+                    case 'flipy':
+                        flipMove(domType);
+                    break;
+                    case 'angle90':
+                    case 'angle-90':
+                        angleMove(domType);
+                    break;
+                }
+
+                layersRender();
+            }
+        });
+
+        document.querySelectorAll('.side .btn').forEach(item=>{
+            item.onclick = function(e){
+                let domType = e.target.getAttribute('_type');
+
+                switch(domType){
+                    case 'horiLt':
+                    case 'horiCt':
+                    case 'horiRt':
+                        horiPos(domType);
+                    break;
+                    case 'vertLt':
+                    case 'vertCt':
+                    case 'vertRt':
+                        vertPos(domType);
+                    break;
+                    case 'averh':
+                    case 'averv':
+                        averPos(domType);
+                    break;
+                }
+
+                layersRender();
+            }
+        });
+
+        document.querySelector('.layers').onclick = function(e){
+            let target = e.target;
+            let kid = e.target.getAttribute('_kid');
+            let arr = canvas.getObjects();
+            if(arr){
+                let curObj = arr.find(tmpItem=>tmpItem.kid == kid);
+                if(curObj){
+                    if(/eye/ig.test(target.getAttribute('class'))){
+                        curObj.visible = !curObj.visible;
+                    }
+                    if(curObj.visible){
+                        canvas.setActiveObject(curObj);        
+                    }else{
+                        canvas.discardActiveObject();
+                    }
+                    canvas.renderAll();
+                    layersRender();
+                }
+            }
+        }
+
+        let stepNum = 5;
+        function vertMove(type){
+            let curObj = canvas.getActiveObject();
+            if(curObj){
+                curObj.set({
+                    top: curObj.top + (type=='up'?-1:1) * stepNum
+                });
+                canvas.renderAll();
+            }
+        }
+
+        function horiMove(type){
+            let curObj = canvas.getActiveObject();
+            if(curObj){
+                curObj.set({
+                    left: curObj.left + (type=='left'?-1:1) * stepNum
+                });
+                canvas.renderAll();
+            }
+        }
+
+        function flipMove(type){
+            let curObj = canvas.getActiveObject();
+            if(curObj){
+                curObj.set({
+                    flipX: type=='flipx'?!curObj.flipX:curObj.flipX,
+                    flipY: type=='flipy'?!curObj.flipY:curObj.flipY
+                });
+                canvas.renderAll();
+            }
+        }
+
+        function angleMove(type){
+            let curObj = canvas.getActiveObject();
+            if(curObj){
+                if(curObj.originX == 'center'){
+                    curObj.set({
+                        angle: curObj.angle + (type=='angle90'?1:-1) * 90,
+                    });
+                }else{
+                    curObj.set({
+                        angle: curObj.angle + (type=='angle90'?1:-1) * 90,
+                        left: curObj.left + curObj.width/2,
+                        top: curObj.top + curObj.height/2,
+                        originX: 'center',
+                        originY: 'center'
+                    });    
+                }
+                canvas.renderAll();
+            }
+        }
+
+        function resetAcSct(arr){
+            canvas.discardActiveObject();
+            let sel = new fabric.ActiveSelection(arr, {
+              canvas: canvas,
+            });
+            canvas.setActiveObject(sel); 
+            canvas.renderAll();
+        }
+
+        function horiPos(type){
+            let curObj = canvas.getActiveObject();
+
+            if(curObj && curObj._objects){
+                if(type == 'horiLt'){
+                    let leftMin = Math.min(...curObj._objects.map(item=>item.left));
+                    curObj._objects.forEach(item=>{
+                        item.set({
+                            left: leftMin,
+                        });
+                    });
+                } else if(type == 'horiCt'){
+                    let leftMin = Math.min(...curObj._objects.map(item=>item.left));
+                    let leftMax = Math.max(...curObj._objects.map(item=>{
+                            return item.width + item.left;
+                        })
+                    );
+                    curObj._objects.forEach((item, index)=>{
+                        item.set({
+                            left: (leftMin + leftMax)/2 - item.width/2,
+                        });
+                    });
+                }if(type == 'horiRt'){
+                    let leftMax = Math.max(...curObj._objects.map(item=>{
+                            return item.width + item.left;
+                        })
+                    );
+                    curObj._objects.forEach((item, index)=>{
+                        item.set({
+                            left: leftMax - item.width,
+                        });
+                    });
+                }
+
+                resetAcSct(curObj._objects);
+            }
+        }
+
+        function vertPos(type){
+            let curObj = canvas.getActiveObject();
+
+            if(curObj && curObj._objects){
+                if(type == 'vertLt'){
+                    let topMin = Math.min(...curObj._objects.map(item=>item.top));
+                    curObj._objects.forEach(item=>{
+                        item.set({
+                            top: topMin,
+                        });
+                    });
+                } else if(type == 'vertCt'){
+                    let topMin = Math.min(...curObj._objects.map(item=>item.top));
+                    let topMax = Math.max(...curObj._objects.map(item=>{
+                            return item.height + item.top;
+                        })
+                    );
+                    curObj._objects.forEach((item, index)=>{
+                        item.set({
+                            top: (topMin + topMax)/2 - item.height/2,
+                        });
+                    });
+                }if(type == 'vertRt'){
+                    let topMax = Math.max(...curObj._objects.map(item=>{
+                            return item.height + item.top;
+                        })
+                    );
+                    curObj._objects.forEach((item, index)=>{
+                        item.set({
+                            top: topMax - item.height,
+                        });
+                    });
+                }
+                resetAcSct(curObj._objects);
+            }
+        }
+
+        function averPos(type){
+            let curObj = canvas.getActiveObject();
+
+            if(curObj && curObj._objects){
+                if(type == 'averh'){
+                    let minobj = null;
+                    let maxobj = null;
+                    let leftMin = curObj._objects[0].left;
+                    let leftMax = curObj._objects[0].left;
+                    let widthMin = curObj._objects[0].width;
+
+                    curObj._objects.forEach(item=>{
+                        if(leftMin>item.left){
+                            leftMin = item.left;
+                            minobj = item;
+                        }
+                        if(leftMax < item.width + item.left){
+                            leftMax = item.width + item.left;
+                            maxobj = item;
+                        }
+                        if(widthMin > item.width){
+                            widthMin = item.width;
+                        }
+                    });
+                    
+                    let tmpArr = _.merge([], curObj._objects);
+                    tmpArr.sort((a, b)=> {return (a.left) - (b.left)});
+                    let step = (leftMax - leftMin)/(curObj._objects.length - 1);
+                    if(minobj==maxobj){
+                        step = (maxobj.width - widthMin)/curObj._objects.length;
+                    }
+
+                    curObj._objects.forEach((item, index)=>{
+                        let tmpIndex = tmpArr.findIndex(tmpItem=>tmpItem.kid==item.kid);
+                        if(minobj == maxobj){
+                            item.set({
+                                left: leftMin + tmpIndex * step
+                            });
+                        }else{
+                            if(!((item.left == leftMin && tmpIndex == 0) || (item.left + item.width == leftMax && tmpIndex == curObj._objects.length - 1))){
+                                item.set({
+                                    left: leftMin + tmpIndex * step - item.width/2
+                                }); 
+                            }
+                        }
+                    }); 
+                }else if(type == 'averv'){
+                    let minobj = null;
+                    let maxobj = null;
+                    let topMin = curObj._objects[0].top;
+                    let topMax = curObj._objects[0].top;
+                    let heightMin = curObj._objects[0].height;
+
+                    curObj._objects.forEach(item=>{
+                        if(topMin>item.top){
+                            topMin = item.top;
+                            minobj = item;
+                        }
+                        if(topMax < item.height + item.top){
+                            topMax = item.height + item.top;
+                            maxobj = item;
+                        }
+                        if(heightMin > item.height){
+                            heightMin = item.height;
+                        }
+                    });
+                    
+                    let tmpArr = _.merge([], curObj._objects);
+                    tmpArr.sort((a, b)=> {return (a.top) - (b.top)});
+                    let step = (topMax - topMin)/(curObj._objects.length - 1);
+                    if(minobj==maxobj){
+                        step = (maxobj.height - heightMin)/curObj._objects.length;
+                    }
+
+                    curObj._objects.forEach((item, index)=>{
+                        let tmpIndex = tmpArr.findIndex(tmpItem=>tmpItem.kid==item.kid);
+                        if(minobj==maxobj){
+                            item.set({
+                                top: topMin + tmpIndex * step,
+                            });
+                        }else{
+                            if(!((item.top == topMin && tmpIndex == 0) || (item.top + item.height == topMax && tmpIndex == curObj._objects.length - 1))){
+                                item.set({
+                                    top: topMin + tmpIndex * step - item.height/2,
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+            resetAcSct(curObj._objects);
+        }
+
+        function layersRender(){
+            let arr = canvas.getObjects();
+            
+            let curObj = canvas.getActiveObject();
+            let curArr = null;
+            if(curObj && curObj._objects){
+                curArr = _.merge([], curObj._objects);
+            }else if(curObj){
+                curArr = _.merge([], [curObj]);
+            }
+            let html = arr.reduce((acc, item)=>{
+                    let tmpObj = null;
+                    if(curArr){
+                        tmpObj = curArr.find(tmpItem=>tmpItem.kid == item.kid);
+                    }
+
+                    return acc += `                
+                    <div class="item ${tmpObj?'checked':''}" _kid="${item.kid}"> 
+                        <div class="eye ${item.visible?'':'uneye'}" _kid="${item.kid}"></div>
+                        <div class="elem" _kid="${item.kid}">${item.kname}</div>
+                    </div>
+                    `;
+            }, '');
+            document.querySelector('.layers').innerHTML = `${html}`;
+        }
+    </script>
+</body>
+</html>
