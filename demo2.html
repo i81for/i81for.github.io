@@ -25,7 +25,6 @@
         .layers .item .eye{ width: 15px; height: 15px; background: #0f0; border: 5px solid #999; margin-right: 10px; }
         .layers .item .eye.uneye{ background: #eee; }
         .layers .item .elem{ width: 130px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .center{ text-align: center; margin-top: 20px; }
     </style>
     <script src="./libs/lodash.min.js"></script>
     <script src="./libs/fabric.js"></script>
@@ -61,10 +60,9 @@
 
     <div class="demo"><canvas width="800px" height="500px"  id="c"></canvas></div>
 
-    <div class="center">存在很多问题</div>
-
     <script>
         let canvas = this.__canvas = new fabric.Canvas('c');
+        let angleObj = null;
 
         let text = new fabric.Text('Hello World', {
             kid: 'k0002',
@@ -142,7 +140,7 @@
         let sideThreeBtns = document.querySelectorAll('.side .three .btn');
 
         canvas.on({
-            'mouse:up': function(){
+             'mouse:up': function(){
                 let curObj = canvas.getActiveObject();
                 if(curObj && curObj._objects){
                     sideTwoBtns.forEach(item=>{
@@ -158,12 +156,11 @@
                             item.setAttribute('disabled', 'disabled');
                         });
                     }
-
                     
                     if(curObj.originX == 'center'){
                         curObj.set({
-                            left: curObj.left - curObj.width/2,
-                            top: curObj.top - curObj.height/2,
+                            left: curObj.left - curObj.width * curObj.scaleX/2,
+                            top: curObj.top - curObj.height * curObj.scaleY/2,
                             originX: 'left',
                             originY: 'top'
                         });
@@ -174,11 +171,11 @@
                         item.setAttribute('disabled', 'disabled');
                     });
                 }
-
                 layersRender();
             }
         });
 
+        
         document.querySelectorAll('.operate .btn').forEach(item=>{
             item.onclick = function(e){
                 let domType = e.target.getAttribute('_type');
@@ -201,10 +198,10 @@
                         angleMove(domType);
                     break;
                 }
-
                 layersRender();
             }
         });
+
 
         document.querySelectorAll('.side .btn').forEach(item=>{
             item.onclick = function(e){
@@ -226,7 +223,6 @@
                         averPos(domType);
                     break;
                 }
-
                 layersRender();
             }
         });
@@ -294,14 +290,38 @@
                 }else{
                     curObj.set({
                         angle: curObj.angle + (type=='angle90'?1:-1) * 90,
-                        left: curObj.left + curObj.width/2,
-                        top: curObj.top + curObj.height/2,
+                        left: curObj.left + curObj.width * curObj.scaleX/2,
+                        top: curObj.top + curObj.height * curObj.scaleY/2,
                         originX: 'center',
                         originY: 'center'
-                    });    
+                    });
                 }
                 canvas.renderAll();
             }
+
+            // let curObj = canvas.getActiveObject();
+            // if(curObj){
+            //     angleObj = curObj;
+            //     let tmpAngle = curObj.angle + (type=='angle90'?1:-1) * 90;
+            //     curObj.centeredRotation = true;  
+            //     if(curObj.originX == 'center'){
+            //         curObj.set({
+            //             angle: curObj.angle + (type=='angle90'?1:-1) * 90,
+            //             angCount: (isNaN(curObj.angCount)?0:+curObj.angCount) + (type=='angle90'?1:-1),
+            //         });
+            //     }else{
+            //         curObj.set({
+            //             angle: tmpAngle,
+            //             angCount: (isNaN(curObj.angCount)?0:+curObj.angCount) + (type=='angle90'?1:-1),
+            //             centeredRotation: true,
+            //             left: curObj.left + curObj.width * curObj.scaleX/2,
+            //             top: curObj.top + curObj.height * curObj.scaleY/2,
+            //             originX: 'center',
+            //             originY: 'center'
+            //         });
+            //     }
+            //     canvas.renderAll(); 
+            // }
         }
 
         function resetAcSct(arr){
@@ -327,22 +347,22 @@
                 } else if(type == 'horiCt'){
                     let leftMin = Math.min(...curObj._objects.map(item=>item.left));
                     let leftMax = Math.max(...curObj._objects.map(item=>{
-                            return item.width + item.left;
+                            return item.width * item.scaleX + item.left;
                         })
                     );
                     curObj._objects.forEach((item, index)=>{
                         item.set({
-                            left: (leftMin + leftMax)/2 - item.width/2,
+                            left: (leftMin + leftMax)/2 - (item.width * item.scaleX)/2,
                         });
                     });
                 }if(type == 'horiRt'){
                     let leftMax = Math.max(...curObj._objects.map(item=>{
-                            return item.width + item.left;
+                            return item.width * item.scaleX + item.left;
                         })
                     );
                     curObj._objects.forEach((item, index)=>{
                         item.set({
-                            left: leftMax - item.width,
+                            left: leftMax - item.width * item.scaleX,
                         });
                     });
                 }
@@ -365,22 +385,22 @@
                 } else if(type == 'vertCt'){
                     let topMin = Math.min(...curObj._objects.map(item=>item.top));
                     let topMax = Math.max(...curObj._objects.map(item=>{
-                            return item.height + item.top;
+                            return item.height * item.scaleY + item.top;
                         })
                     );
                     curObj._objects.forEach((item, index)=>{
                         item.set({
-                            top: (topMin + topMax)/2 - item.height/2,
+                            top: (topMin + topMax)/2 - (item.height * item.scaleY)/2,
                         });
                     });
                 }if(type == 'vertRt'){
                     let topMax = Math.max(...curObj._objects.map(item=>{
-                            return item.height + item.top;
+                            return item.height * item.scaleY + item.top;
                         })
                     );
                     curObj._objects.forEach((item, index)=>{
                         item.set({
-                            top: topMax - item.height,
+                            top: topMax - item.height * item.scaleY,
                         });
                     });
                 }
@@ -397,19 +417,19 @@
                     let maxobj = null;
                     let leftMin = curObj._objects[0].left;
                     let leftMax = curObj._objects[0].left;
-                    let widthMin = curObj._objects[0].width;
+                    let widthMin = curObj._objects[0].width * curObj._objects[0].scaleX;
 
                     curObj._objects.forEach(item=>{
                         if(leftMin>item.left){
                             leftMin = item.left;
                             minobj = item;
                         }
-                        if(leftMax < item.width + item.left){
-                            leftMax = item.width + item.left;
+                        if(leftMax < item.width * item.scaleX + item.left){
+                            leftMax = item.width * item.scaleX + item.left;
                             maxobj = item;
                         }
-                        if(widthMin > item.width){
-                            widthMin = item.width;
+                        if(widthMin > item.width * item.scaleX){
+                            widthMin = item.width * item.scaleX;
                         }
                     });
                     
@@ -417,7 +437,7 @@
                     tmpArr.sort((a, b)=> {return (a.left) - (b.left)});
                     let step = (leftMax - leftMin)/(curObj._objects.length - 1);
                     if(minobj==maxobj){
-                        step = (maxobj.width - widthMin)/curObj._objects.length;
+                        step = (maxobj.width * maxobj.scaleX - widthMin)/curObj._objects.length;
                     }
 
                     curObj._objects.forEach((item, index)=>{
@@ -427,9 +447,9 @@
                                 left: leftMin + tmpIndex * step
                             });
                         }else{
-                            if(!((item.left == leftMin && tmpIndex == 0) || (item.left + item.width == leftMax && tmpIndex == curObj._objects.length - 1))){
+                            if(!((item.left == leftMin && tmpIndex == 0) || (item.left + item.width * item.scaleX == leftMax && tmpIndex == curObj._objects.length - 1))){
                                 item.set({
-                                    left: leftMin + tmpIndex * step - item.width/2
+                                    left: leftMin + tmpIndex * step - (item.width * item.scaleX)/2
                                 }); 
                             }
                         }
@@ -439,19 +459,19 @@
                     let maxobj = null;
                     let topMin = curObj._objects[0].top;
                     let topMax = curObj._objects[0].top;
-                    let heightMin = curObj._objects[0].height;
+                    let heightMin = curObj._objects[0].height * curObj._objects[0].scaleY;
 
                     curObj._objects.forEach(item=>{
                         if(topMin>item.top){
                             topMin = item.top;
                             minobj = item;
                         }
-                        if(topMax < item.height + item.top){
-                            topMax = item.height + item.top;
+                        if(topMax < item.height * item.scaleY + item.top){
+                            topMax = item.height * item.scaleY + item.top;
                             maxobj = item;
                         }
-                        if(heightMin > item.height){
-                            heightMin = item.height;
+                        if(heightMin > item.height * item.scaleY){
+                            heightMin = item.height * item.scaleY;
                         }
                     });
                     
@@ -459,7 +479,7 @@
                     tmpArr.sort((a, b)=> {return (a.top) - (b.top)});
                     let step = (topMax - topMin)/(curObj._objects.length - 1);
                     if(minobj==maxobj){
-                        step = (maxobj.height - heightMin)/curObj._objects.length;
+                        step = (maxobj.height * maxobj.scaleY - heightMin)/curObj._objects.length;
                     }
 
                     curObj._objects.forEach((item, index)=>{
@@ -469,9 +489,9 @@
                                 top: topMin + tmpIndex * step,
                             });
                         }else{
-                            if(!((item.top == topMin && tmpIndex == 0) || (item.top + item.height == topMax && tmpIndex == curObj._objects.length - 1))){
+                            if(!((item.top == topMin && tmpIndex == 0) || (item.top + item.height * item.scaleY == topMax && tmpIndex == curObj._objects.length - 1))){
                                 item.set({
-                                    top: topMin + tmpIndex * step - item.height/2,
+                                    top: topMin + tmpIndex * step - (item.height * item.scaleY)/2,
                                 });
                             }
                         }
