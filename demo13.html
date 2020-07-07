@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>WAV音频上传播放</div>
+    <div><input type="file" id="file"></div>
+
+    <script>
+        let fileDom = document.querySelector('#file');
+        fileDom.addEventListener('change', function(e){
+            let files = e.target.files;
+            if(!files.length){
+                alert('请选择WAV音频文件');
+                return;
+            }
+
+            let curFile = files[0];
+            if(!/wav/ig.test(curFile.type)){
+                alert('请选择WAV音频文件');
+                return;
+            }
+
+            let path = URL.createObjectURL(curFile);
+            let audio = new Audio(path);
+            audio.play();
+
+            audio.addEventListener('loadstart', function(){
+                console.log('播放前 loadstart ...');
+            }, false);
+
+            audio.addEventListener('play', function(){
+                console.log('播放 play ...');
+            }, false);
+
+            audio.addEventListener('pause', function(){
+                console.log('播放暂停 pause ...');
+            }, false);
+
+            audio.addEventListener('playing', function(){
+                console.log('播放中 playing ...');
+            }, false);
+
+            audio.addEventListener('ended', function(){
+                console.log('播放结束。。。');
+            }, false);
+
+            audio.addEventListener('error', function(){
+                console.log('播放错误 error 。。。')
+            }, false);
+            
+
+        }, false);
+    </script>
+</body>
+</html>
