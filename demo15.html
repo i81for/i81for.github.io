@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>指明需要图片</div>
+    <div><input id="file" type="file" accept='image/*'></div>
+      
+    <div>指明调用摄像头获取图片</div>
+    <div><input id="file1" type="file" capture='camera' accept='image/*'></div>
+
+    <div id="imgbox" ></div>
+
+    <script>
+        let fileDom = document.querySelector('#file') || document.querySelector('#file1');
+
+        fileDom.addEventListener('change', function(e){
+            let files = e.target.files;
+            if(!files.length){
+                return;
+            }
+
+            let curFile = files[0];
+
+            if(!/[jpg|jpeg|png]$/ig.test(curFile.type)){
+                return;
+            }
+
+
+            let path = URL.createObjectURL(curFile);
+            let img = new Image();
+            img.crossOrigin = '';
+            img.src = path;
+
+            img.onload = function(){
+                console.log(img);
+
+                let canvas = document.createElement('canvas');
+                if(img.width >= img.height){
+                  if(canvas.width >= 100){
+                    canvas.width = 100;
+                    canvas.height = img.height * 100 / img.width;
+                  }else{
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                  }
+                }else{
+                  if(canvas.height >= 100){
+                    canvas.width = img.width * 100 / img.height;
+                    canvas.height = 100;
+                  }else{
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                  }
+                }
+
+                let ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
+                let ext = img.src.substring(img.src.lastIndexOf(".") + 1).toLowerCase();
+                let dataURL = canvas.toDataURL("image/" + ext);
+                // console.log(dataURL);
+
+                let blob  = dataURLtoBlob(dataURL);
+                let imgHref = URL.createObjectURL(blob); 
+                console.log(imgHref);
+
+                document.querySelector('#imgbox').innerHTML = `<img src="${imgHref}">`;
+              }
+
+              img.onerror = function(e){
+                console.log(e);
+              }
+        }, false);
+
+
+        function dataURLtoBlob(dataurl) {
+            let arr = dataurl.split(','), 
+            mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[1]), 
+            n = bstr.length, 
+            u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new Blob([u8arr], { type: mime });
+        }
+    </script>
+</body>
+</html>
