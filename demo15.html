@@ -12,9 +12,11 @@
     <div>指明调用摄像头获取图片</div>
     <div><input id="file1" type="file" capture='camera' accept='image/*'></div>
 
+    <div>指明调用系统录音</div>
+    <input type="file" accept="audio/*" capture="microphone">
     <div id="imgbox" ></div>
 
-    <input type="file" accept="audio/*" capture="microphone">
+    
 
     <script>
         let fileDom = document.querySelector('#file');
